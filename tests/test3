@@ -1,0 +1,10 @@
+aaaaaaaaaaaaaaa.
+
+
+
+aaaaaaaaaaaaaaaaaaaaaa :- a. af :- f,f,f,f,f,f,g;f.
+df :- f,(hg;(h,g));df.
+f :-
+      a , (b , (c, (d ; (e ; g , h)))) ; f
+      .
+      a:-b.
