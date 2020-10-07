@@ -1,32 +1,48 @@
-from lexer import lex_it
-from enum import Enum
+import ply.yacc as yacc
+from lexer import tokens, lex_reset
+
+definitions = []
 
 
-def get_error_text(expected_text, find_text, line, position):
-    return "Parse error. Expected: '" + str(expected_text) + "', got: '" + str(
-        find_text) + "'. At line: " + str(line) + ", pos: " + str(position)
-
-
-class ParserError(Exception):
-    def __init__(self, text):
-        self.txt = text
-
-
-class Variable:
+class Identifier:
     def __init__(self, name):
         self.name = name
 
-
-class OperatorType(Enum):
-    DISJUNCTION = 1
-    CONJUNCTION = 2
+    def __str__(self):
+        return self.name
 
 
-class Operator:
-    def __init__(self, op_type, left, right):
-        self.op_type = op_type
+class Atom:
+    def __init__(self, identifier, atoms):
+        self.identifier = identifier
+        self.atoms = atoms
+
+    def __str__(self):
+        ret = "Atom (" + str(self.identifier) + ") ["
+        for atom in self.atoms:
+            ret += str(atom) + ", "
+        if self.atoms:
+            ret = ret[0:-2]
+        ret += "]"
+        return ret
+
+
+class OperatorAnd:
+    def __init__(self, left, right):
         self.left = left
         self.right = right
+
+    def __str__(self):
+        return "And (" + str(self.left) + ") (" + str(self.right) + ")"
+
+
+class OperatorOr:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __str__(self):
+        return "Or (" + str(self.left) + ") (" + str(self.right) + ")"
 
 
 class Definition:
@@ -34,93 +50,106 @@ class Definition:
         self.identifier = identifier
         self.expression = expression
 
+    def __str__(self):
+        ret = "Definition (" + str(self.identifier) + ")"
+        if self.expression:
+            ret += " (" + str(self.expression) + ")"
+        return ret
 
-pos = 0
-tokens = []
 
-
-def parse_item():
-    global tokens, pos
-    if tokens[pos].type == 'IDENTIFIER':
-        pos = pos + 1
-        return Variable(tokens[pos - 1].value)
-    elif tokens[pos].type == 'OBRACKET':
-        pos = pos + 1
-        expression = parse_disjunction()
-        if tokens[pos].type == 'CBRACKET':
-            pos = pos + 1
-            return expression
-        else:
-            raise ParserError(get_error_text(')', tokens[pos].value, tokens[pos].lineno, tokens[pos].lexpos))
+def p_definitions_list(p):
+    """definitions_list : definition definitions_list
+                        |"""
+    if len(p) == 1:
+        p[0] = []
     else:
-        raise ParserError(get_error_text('IDENTIFIER', tokens[pos].type, tokens[pos].lineno, tokens[pos].lexpos))
+        p[0] = [p[1]] + p[2]
 
 
-def parse_conjunction():
-    global tokens, pos
-    expression_l = parse_item()
-    if tokens[pos].type == 'CONJUNCTION':
-        pos += 1
-        expression_r = parse_conjunction()
-        return Operator(OperatorType.CONJUNCTION, expression_l, expression_r)
+def p_definition(p):
+    """definition : atom DOT
+                  | atom IS expression DOT"""
+    if len(p) == 3:
+        p[0] = Definition(p[1], None)
     else:
-        return expression_l
+        p[0] = Definition(p[1], p[3])
+
+    global definitions
+    definitions += [p[0]]
 
 
-def parse_disjunction():
-    global tokens, pos
-    expression_l = parse_conjunction()
-    if tokens[pos].type == 'DISJUNCTION':
-        pos += 1
-        expression_r = parse_disjunction()
-        return Operator(OperatorType.DISJUNCTION, expression_l, expression_r)
+def p_atom(p):
+    """atom : ID braced_atoms_list"""
+    if len(p) == 3:
+        p[0] = Atom(p[1], p[2])
     else:
-        return expression_l
+        p[0] = Atom(p[1], [])
 
 
-def parse_identifier():
-    global tokens, pos
-    if tokens[pos].type == 'IDENTIFIER':
-        pos += 1
-        return tokens[pos - 1].value
+def p_braced_atoms_list(p):
+    """braced_atoms_list : ID braced_atoms_list
+                         | LBR atom RBR braced_atoms_list
+                         |"""
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
     else:
-        raise ParserError(get_error_text('IDENTIFIER', tokens[pos].type, tokens[pos].lineno, tokens[pos].lexpos))
+        p[0] = [p[2]] + p[4]
 
 
-def check_drop_corkscrew():
-    global tokens, pos
-    if tokens[pos].type == 'CORKSCREW':
-        pos += 1
-        return True
+def p_expression(p):
+    """expression : expression OR term
+                  | term"""
+    if len(p) == 4:
+        p[0] = OperatorOr(p[1], p[3])
     else:
-        return False
+        p[0] = p[1]
 
 
-def check_drop_dot():
-    global tokens, pos
-    if tokens[pos].type == 'DOT':
-        pos += 1
-        return True
+def p_term(p):
+    """term : term AND factor
+            | factor"""
+    if len(p) == 4:
+        p[0] = OperatorAnd(p[1], p[3])
     else:
-        return False
+        p[0] = p[1]
 
 
-def parse_definition():
-    global tokens, pos
-    identifier = parse_identifier()
-    if check_drop_corkscrew():
-        expression = parse_disjunction()
-    if not check_drop_dot():
-        raise ParserError(get_error_text('.', tokens[pos].value, tokens[pos].lineno, tokens[pos].lexpos))
-    # return Definition(identifier, expression)
+def p_factor(p):
+    """factor : atom
+              | LBR expression RBR"""
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[2]
 
 
-def parse_it(text):
-    global tokens, pos
-    tokens = lex_it(text)
-    pos = 0
-    while pos < len(tokens):
-        try:
-            parse_definition()
-        except IndexError:
-            raise ParserError("Unexpected EOF")
+def p_error(p):
+    if p:
+        print("Parse error in line " + str(p.lineno))
+        '''
+        global parser
+        while True:
+            tok = parser.token()
+            if not tok or tok.type == 'DOT':
+                break
+        parser.restart()
+        '''
+    else:
+        print("Unexpected EOF in last definition")
+
+
+parser = yacc.yacc()
+
+
+def reset():
+    global definitions
+    lex_reset()
+    definitions = []
+
+
+def parse(text):
+    reset()
+    parser.parse(text)
+    return definitions.copy()

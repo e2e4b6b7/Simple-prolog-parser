@@ -36,13 +36,9 @@ def t_error(t):
     raise LexerError(t.value[0], t.lexer.lineno, t.lexer.lexpos)
 
 
-def lex_it(text):
+lexer = lex.lex()
+
+
+def lex_reset():
+    global lexer
     lexer = lex.lex()
-    lexer.input(text)
-    tokens_array = []
-    while True:
-        token = lexer.token()
-        if not token:
-            break
-        tokens_array += [token]
-    return tokens_array
