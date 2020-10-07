@@ -1,7 +1,3 @@
-# Simple-prolog-parser
-
-## HW05
-
-HW04 в ветке master
+# HW05
 
 run main.py
