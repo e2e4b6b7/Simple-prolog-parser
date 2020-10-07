@@ -1,3 +1,3 @@
-# Simple-prolog-parser
+# HW04
 
 run main.py
