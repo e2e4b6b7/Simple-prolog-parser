@@ -1,3 +1,3 @@
-# HW04
+# Simple-prolog-parser
 
-run main.py
+Просто странный мастер, дз в одноимённых ветках
