@@ -7,22 +7,23 @@ class LexerError(Exception):
 
 
 tokens = [
-    'CORKSCREW',
-    'CONJUNCTION',
-    'DISJUNCTION',
-    'IDENTIFIER',
-    'OBRACKET',
-    'CBRACKET',
+    'IS',
+    'AND',
+    'OR',
+    'ID',
+    'LBR',
+    'RBR',
     'DOT'
 ]
 
-t_IDENTIFIER = r"[a-zA-Z_][a-zA-Z_0-9]*"
-t_CORKSCREW = ':-'
-t_CONJUNCTION = ','
-t_DISJUNCTION = ';'
-t_OBRACKET = r'\('
-t_CBRACKET = r'\)'
+t_ID = r"[a-zA-Z_][a-zA-Z_0-9]*"
+t_IS = ':-'
+t_AND = ','
+t_OR = ';'
+t_LBR = r'\('
+t_RBR = r'\)'
 t_DOT = r'\.'
+
 t_ignore = ' \t'
 
 
