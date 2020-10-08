@@ -9,7 +9,7 @@ def get_error_text(expected_text, find_text, line, position):
 
 class ParserError(Exception):
     def __init__(self, text):
-        self.txt = text
+        pass
 
 
 class Variable:

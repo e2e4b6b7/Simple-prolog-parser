@@ -1,9 +1,13 @@
 import ply.lex as lex
 
 
+def get_error_text(text, line, pos):
+    return "Unrecognized symbol: '" + str(text) + "'. At line: " + str(line) + ", pos: " + str(pos)
+
+
 class LexerError(Exception):
-    def __init__(self, text, line, pos):
-        self.txt = "Unrecognized symbol: '" + str(text) + "'. At line: " + str(line) + ", pos: " + str(pos)
+    def __init__(self, text):
+        pass
 
 
 tokens = [
@@ -32,7 +36,7 @@ def t_newline(t):
 
 
 def t_error(t):
-    raise LexerError(t.value[0], t.lexer.lineno, t.lexer.lexpos)
+    raise LexerError(get_error_text(t.value[0], t.lexer.lineno, t.lexer.lexpos))
 
 
 def lex_it(text):
