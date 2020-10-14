@@ -80,15 +80,21 @@ def p_definition(p):
 
 def p_atom(p):
     """atom : ID braced_atoms_list"""
-    if len(p) == 3:
-        p[0] = Atom(p[1], p[2])
+    p[0] = Atom(p[1], p[2])
+
+
+def p_braced_atom(p):
+    """braced_atom : LBR braced_atom RBR
+                   | atom"""
+    if len(p) == 4:
+        p[0] = p[2]
     else:
-        p[0] = Atom(p[1], [])
+        p[0] = p[1]
 
 
 def p_braced_atoms_list(p):
     """braced_atoms_list : ID braced_atoms_list
-                         | LBR atom RBR braced_atoms_list
+                         | LBR braced_atom RBR braced_atoms_list
                          |"""
     if len(p) == 1:
         p[0] = []

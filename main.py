@@ -1,4 +1,5 @@
 from parser import parse
+from lexer import LexerError
 import sys
 
 
@@ -23,4 +24,7 @@ if len(sys.argv) < 2:
     test()
 else:
     file = open(sys.argv[1], 'r')
-    out_parse_result(parse(file.read()))
+    try:
+        out_parse_result(parse(file.read()))
+    except LexerError as error:
+        print(error.args[0])
