@@ -134,14 +134,12 @@ def p_factor(p):
 def p_error(p):
     if p:
         print("Parse error in line " + str(p.lineno))
-        '''
         global parser
         while True:
             tok = parser.token()
             if not tok or tok.type == 'DOT':
                 break
         parser.restart()
-        '''
     else:
         print("Unexpected EOF in last definition")
 
