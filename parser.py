@@ -105,7 +105,7 @@ def p_braced_atoms_list(p):
 
 
 def p_expression(p):
-    """expression : expression OR term
+    """expression : term OR expression
                   | term"""
     if len(p) == 4:
         p[0] = OperatorOr(p[1], p[3])
@@ -114,7 +114,7 @@ def p_expression(p):
 
 
 def p_term(p):
-    """term : term AND factor
+    """term : factor AND term
             | factor"""
     if len(p) == 4:
         p[0] = OperatorAnd(p[1], p[3])
